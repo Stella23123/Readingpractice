@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Practice: The Kākāpō</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        }
+                    },
+                    keyframes: {
+                        'fade-in': {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        'slide-in': {
+                            '0%': { transform: 'translateY(-10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fade-in 0.3s ease-out',
+                        'slide-in': 'slide-in 0.3s ease-out',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar for better reading experience */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // --- ICONS (Lucide replacment) ---
+        const IconWrapper = ({ children, className, ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+                {...props}
+            >
+                {children}
+            </svg>
+        );
+
+        const BookOpen = (props) => (
+            <IconWrapper {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></IconWrapper>
+        );
+        const PenTool = (props) => (
+            <IconWrapper {...props}><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></IconWrapper>
+        );
+        const Trash2 = (props) => (
+            <IconWrapper {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></IconWrapper>
+        );
+        const CheckCircle = (props) => (
+            <IconWrapper {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconWrapper>
+        );
+        const XCircle = (props) => (
+            <IconWrapper {...props}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></IconWrapper>
+        );
+        const RefreshCw = (props) => (
+            <IconWrapper {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></IconWrapper>
+        );
+
+        // --- DATA ---
+        const PASSAGE_PARAGRAPHS = [
+            "The kākāpō is a nocturnal, flightless parrot that is critically endangered and one of New Zealand's unique treasures.",
+            "The kākāpō, also known as the owl parrot, is a large, forest-dwelling bird, with a pale owl-like face. Up to 64 cm in length, it has predominantly yellow-green feathers, forward-facing eyes, a large grey beak, large blue feet, and relatively short wings and tail. It is the world's only flightless parrot, and is also possibly one of the world's longest-living birds, with a reported lifespan of up to 100 years.",
+            "Kākāpō are solitary birds and tend to occupy the same home range for many years. They forage on the ground and climb high into trees. They often leap from trees and flap their wings, but at best manage a controlled descent to the ground. They are entirely vegetarian, with their diet including the leaves, roots and bark of trees as well as bulbs, and fern fronds.",
+            "Kākāpō breed in summer and autumn, but only in years when food is plentiful. Males play no part in incubation or chick-rearing - females alone incubate eggs and feed the chicks. The 1-4 eggs are laid in soil, which is repeatedly turned over before and during incubation. The female kākāpō has to spend long periods away from the nest searching for food, which leaves the unattended eggs and chicks particularly vulnerable to predators.",
+            "Before humans arrived, kākāpō were common throughout New Zealand's forests. However, this all changed with the arrival of the first Polynesian settlers about 700 years ago. For the early settlers, the flightless kākāpō was easy prey. They ate its meat and used its feathers to make soft cloaks. With them came the Polynesian dog and rat, which also preyed on kākāpō. By the time European colonisers arrived in the early 1800s, kākāpō had become confined to the central North Island and forested parts of the South Island. The fall in kākāpō numbers was accelerated by European colonisation. A great deal of habitat was lost through forest clearance, and introduced species such as deer depleted the remaining forests of food. Other predators such as cats, stoats and two more species of rat were also introduced. The kākāpō were in serious trouble.",
+            "In 1894, the New Zealand government launched its first attempt to save the kākāpō. Conservationist Richard Henry led an effort to relocate several hundred of the birds to predator-free Resolution Island in Fiordland. Unfortunately, the island didn't remain predator free - stoats arrived within six years, eventually destroying the kākāpō population. By the mid-1900s, the kākāpō was practically a lost species. Only a few clung to life in the most isolated parts of New Zealand.",
+            "From 1949 to 1973, the newly formed New Zealand Wildlife Service made over 60 expeditions to find kākāpō, focusing mainly on Fiordland. Six were caught, but there were no females amongst them and all but one died within a few months of captivity. In 1974, a new initiative was launched, and by 1977, 18 more kākāpō were found in Fiordland. However, there were still no females. In 1977, a large population of males was spotted in Rakiura - a large island free from stoats, ferrets and weasels. There were about 200 individuals, and in 1980 it was confirmed females were also present. These birds have been the foundation of all subsequent work in managing the species.",
+            "Unfortunately, predation by feral cats on Rakiura Island led to a rapid decline in kākāpō numbers. As a result, during 1980-97, the surviving population was evacuated to three island sanctuaries: Codfish Island, Maud Island and Little Barrier Island. However, breeding success was hard to achieve. Rats were found to be a major predator of kakapo chicks and an insufficient number of chicks survived to offset adult mortality. By 1995, although at least 12 chicks had been produced on the islands, only three had survived. The kākāpō population had dropped to 51 birds. The critical situation prompted an urgent review of kākāpō management in New Zealand.",
+            "In 1996, a new Recovery Plan was launched, together with a specialist advisory group called the Kākāpō Scientific and Technical Advisory Committee and a higher amount of funding. Renewed steps were taken to control predators on the three islands. Cats were eradicated from Little Barrier Island in 1980, and possums were eradicated from Codfish Island by 1986. However, the population did not start to increase until rats were removed from all three islands, and the birds were more intensively managed. This involved moving the birds between islands, supplementary feeding of adults and rescuing and hand-raising any failing chicks.",
+            "After the first five years of the Recovery Plan, the population was on target. By 2000, five new females had been produced, and the total population had grown to 62 birds. For the first time, there was cautious optimism for the future of kākāpō and by June 2020, a total of 210 birds was recorded.",
+            "Today, kākāpō management continues to be guided by the kākāpō Recovery Plan. Its key goals are: minimise the loss of genetic diversity in the kākāpō population, restore or maintain sufficient habitat to accommodate the expected increase in the kākāpō population, and ensure stakeholders continue to be fully engaged in the preservation of the species."
+        ];
+
+        const QUESTIONS_TF = [
+            { id: 1, text: "There are other parrots that share the kakapo's inability to fly.", answer: "FALSE" },
+            { id: 2, text: "Adult kakapo produce chicks every year.", answer: "FALSE" },
+            { id: 3, text: "Adult male kakapo bring food back to nesting females.", answer: "FALSE" },
+            { id: 4, text: "The Polynesian rat was a greater threat to the kakapo than Polynesian settlers.", answer: "NOT GIVEN" },
+            { id: 5, text: "Kakapo were transferred from Rakiura Island to other locations because they were at risk from feral cats.", answer: "TRUE" },
+            { id: 6, text: "One Recovery Plan initiative that helped increase the kakapo population size was caring for struggling young birds.", answer: "TRUE" },
+        ];
+
+        const GAP_FILL_ANSWERS = {
+            7: "bulbs",
+            8: "soil",
+            9: "feathers",
+            10: "deer",
+            11: "1980",
+            12: "funding",
+            13: "stakeholders"
+        };
+
+        const STORAGE_KEY_ANSWERS = 'ielts_kakapo_answers';
+        const STORAGE_KEY_HIGHLIGHTS = 'ielts_kakapo_highlights';
+
+        // --- COMPONENTS ---
+
+        const HighlightableParagraph = React.memo(({ text, pIndex, highlights, onHighlight, onRemoveHighlight }) => {
+            const containerRef = useRef(null);
+
+            const handleMouseUp = () => {
+                const selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
+
+                const range = selection.getRangeAt(0);
+                const container = containerRef.current;
+
+                if (!container || !container.contains(range.commonAncestorContainer)) return;
+
+                const preSelectionRange = range.cloneRange();
+                preSelectionRange.selectNodeContents(container);
+                preSelectionRange.setEnd(range.startContainer, range.startOffset);
+                const start = preSelectionRange.toString().length;
+                const end = start + range.toString().length;
+
+                onHighlight(pIndex, start, end);
+                selection.removeAllRanges();
+            };
+
+            const renderContent = () => {
+                const pHighlights = highlights
+                    .filter(h => h.pIndex === pIndex)
+                    .sort((a, b) => a.start - b.start);
+
+                if (pHighlights.length === 0) return text;
+
+                const elements = [];
+                let lastIndex = 0;
+
+                pHighlights.forEach((h, i) => {
+                    if (h.start > lastIndex) {
+                        elements.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex, h.start)}</span>);
+                    }
+                    elements.push(
+                        <mark
+                            key={`mark-${h.id}`}
+                            className="bg-yellow-200 cursor-pointer hover:bg-red-200 transition-colors rounded px-0.5 relative group"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveHighlight(h.id);
+                            }}
+                            role="button"
+                            aria-label="Remove highlight"
+                            title="Click to remove highlight"
+                        >
+                            {text.slice(h.start, h.end)}
+                        </mark>
+                    );
+                    lastIndex = h.end;
+                });
+
+                if (lastIndex < text.length) {
+                    elements.push(<span key={`text-end-${lastIndex}`}>{text.slice(lastIndex)}</span>);
+                }
+                return elements;
+            };
+
+            return (
+                <p 
+                    ref={containerRef} 
+                    onMouseUp={handleMouseUp}
+                    className="mb-4 text-gray-800 leading-relaxed text-lg relative select-text"
+                >
+                    {renderContent()}
+                </p>
+            );
+        });
+
+        const GapInput = React.memo(({ id, userAnswers, onChange, showResults, correct }) => {
+            const val = userAnswers[id] || '';
+            const isCorrect = val.toString().trim().toLowerCase() === correct.toString().toLowerCase();
+
+            return (
+                <span className="inline-block mx-1 relative align-baseline">
+                    <span className="absolute -top-3 left-0 text-[10px] text-gray-400 font-sans font-bold select-none">{id}</span>
+                    <input
+                        type="text"
+                        value={val}
+                        onChange={(e) => onChange(id, e.target.value)}
+                        disabled={showResults}
+                        aria-label={`Question ${id}`}
+                        autoComplete="off"
+                        className={`
+                            border-b-2 px-1 py-0 h-6 text-center bg-transparent focus:outline-none focus:border-blue-600 transition-all font-medium
+                            ${val ? 'min-w-[80px]' : 'w-24'}
+                            ${showResults 
+                                ? (isCorrect 
+                                    ? 'border-green-500 text-green-700 bg-green-50' 
+                                    : 'border-red-500 text-red-700 bg-red-50 line-through decoration-red-400 decoration-2')
+                                : 'border-gray-400 hover:border-gray-600'
+                            }
+                        `}
+                    />
+                    {showResults && !isCorrect && (
+                        <span className="absolute -bottom-5 left-0 w-max text-xs font-bold text-green-700 bg-green-50 px-1 rounded shadow-sm z-10 whitespace-nowrap border border-green-200 animate-in fade-in slide-in-from-top-1">
+                            {correct}
+                        </span>
+                    )}
+                </span>
+            );
+        });
+
+        const QuizSection = React.memo(({ userAnswers, handleAnswerChange, showResults }) => {
+            return (
+                <div className="space-y-8 pb-10">
+                    {/* TF SECTION */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Questions 1-6</h3>
+                        <p className="text-sm text-gray-600 mb-6 italic">
+                            Do the following statements agree with the information given in Reading Passage 1?
+                        </p>
+                        
+                        <div className="space-y-6">
+                            {QUESTIONS_TF.map((q) => {
+                                const isCorrect = userAnswers[q.id] === q.answer;
+                                const statusColor = showResults 
+                                    ? (isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200')
+                                    : 'hover:bg-gray-50';
+
+                                return (
+                                    <div key={q.id} className={`p-4 rounded-md border border-transparent ${statusColor} transition-colors duration-200`}>
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="font-semibold text-gray-500 mr-2 min-w-[1.5rem]">{q.id}.</span>
+                                            <span className="flex-1 text-gray-800 leading-snug">{q.text}</span>
+                                            {showResults && (
+                                                <span className="ml-2">
+                                                    {isCorrect ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-500" />}
+                                                </span>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="flex flex-wrap gap-4 ml-8">
+                                            {['TRUE', 'FALSE', 'NOT GIVEN'].map((option) => (
+                                                <label key={option} className="flex items-center gap-2 cursor-pointer text-sm group">
+                                                    <div className="relative flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            name={`q-${q.id}`}
+                                                            value={option}
+                                                            checked={userAnswers[q.id] === option}
+                                                            onChange={() => handleAnswerChange(q.id, option)}
+                                                            disabled={showResults}
+                                                            className="peer h-4 w-4 border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <span className={`group-hover:text-emerald-800 transition-colors ${showResults && q.answer === option ? "font-bold text-green-700 underline decoration-2 underline-offset-2" : ""}`}>
+                                                        {option}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                        {showResults && !isCorrect && (
+                                             <div className="ml-8 mt-2 text-xs font-semibold text-red-600">Correct Answer: {q.answer}</div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* GAP FILL SECTION */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Questions 7-13</h3>
+                        <p className="text-sm text-gray-600 mb-6 italic">
+                            Complete the notes below. Choose <strong>ONE WORD AND/OR A NUMBER</strong> from the passage for each answer.
+                        </p>
+
+                        <div className="bg-slate-50 p-6 rounded-lg font-mono text-sm leading-loose text-gray-800 border border-gray-300 shadow-inner">
+                            <h4 className="font-bold text-center text-lg mb-6 uppercase text-gray-700 tracking-wider">New Zealand's Kākāpō</h4>
+                            
+                            <div className="space-y-6">
+                                <div className="pl-2 border-l-2 border-slate-200">
+                                    <strong>Diet:</strong> consists of fern fronds, various parts of a tree and
+                                    <GapInput id={7} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[7]} />
+                                </div>
+
+                                <div className="pl-2 border-l-2 border-slate-200">
+                                    <strong>Nests:</strong> are created in
+                                    <GapInput id={8} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[8]} />
+                                    where eggs are laid.
+                                </div>
+
+                                <div className="mt-6">
+                                    <div className="font-bold text-gray-600 uppercase text-xs tracking-wide mb-1">Arrival of Polynesian settlers</div>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li>
+                                            The
+                                            <GapInput id={9} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[9]} />
+                                            of the kākāpō were used to make clothes.
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="mt-4">
+                                    <div className="font-bold text-gray-600 uppercase text-xs tracking-wide mb-1">Arrival of European colonisers</div>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li>
+                                            <GapInput id={10} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[10]} />
+                                            were an animal which they introduced that ate the kākāpō's food sources.
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="mt-4">
+                                    <div className="font-bold text-gray-600 uppercase text-xs tracking-wide mb-1">Protecting kākāpō</div>
+                                    <p className="pl-5 mb-2 italic text-gray-600 text-xs">Richard Henry, a conservationist, tried to protect the kākāpō.</p>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li>
+                                            A definite sighting of female kākāpō on Rakiura Island was reported in the year
+                                            <GapInput id={11} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[11]} />
+                                        </li>
+                                        <li>
+                                            The Recovery Plan included an increase in
+                                            <GapInput id={12} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[12]} />
+                                        </li>
+                                        <li>
+                                            A current goal of the Recovery Plan is to maintain the involvement of
+                                            <GapInput id={13} userAnswers={userAnswers} onChange={handleAnswerChange} showResults={showResults} correct={GAP_FILL_ANSWERS[13]} />
+                                            in kākāpō protection.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+        // --- MAIN APP ---
+        function App() {
+            const [highlights, setHighlights] = useState([]);
+            const [userAnswers, setUserAnswers] = useState({});
+            const [showResults, setShowResults] = useState(false);
+            const [score, setScore] = useState(0);
+            const [isLoaded, setIsLoaded] = useState(false);
+
+            useEffect(() => {
+                try {
+                    const savedAnswers = localStorage.getItem(STORAGE_KEY_ANSWERS);
+                    const savedHighlights = localStorage.getItem(STORAGE_KEY_HIGHLIGHTS);
+                    if (savedAnswers) setUserAnswers(JSON.parse(savedAnswers));
+                    if (savedHighlights) setHighlights(JSON.parse(savedHighlights));
+                } catch (e) {
+                    console.error("Failed to load from local storage", e);
+                }
+                setIsLoaded(true);
+            }, []);
+
+            useEffect(() => {
+                if (!isLoaded) return;
+                localStorage.setItem(STORAGE_KEY_ANSWERS, JSON.stringify(userAnswers));
+            }, [userAnswers, isLoaded]);
+
+            useEffect(() => {
+                if (!isLoaded) return;
+                localStorage.setItem(STORAGE_KEY_HIGHLIGHTS, JSON.stringify(highlights));
+            }, [highlights, isLoaded]);
+
+            const addHighlight = useCallback((pIndex, start, end) => {
+                if (start >= end) return;
+                setHighlights(prev => {
+                    const relevant = prev.filter(h => h.pIndex === pIndex);
+                    const others = prev.filter(h => h.pIndex !== pIndex);
+                    const ranges = [...relevant, { pIndex, start, end, id: 'temp' }].sort((a, b) => a.start - b.start);
+                    
+                    const merged = [];
+                    if (ranges.length > 0) {
+                        let current = { ...ranges[0] };
+                        for (let i = 1; i < ranges.length; i++) {
+                            const next = ranges[i];
+                            if (next.start <= current.end) {
+                                current.end = Math.max(current.end, next.end);
+                            } else {
+                                merged.push(current);
+                                current = { ...next };
+                            }
+                        }
+                        merged.push(current);
+                    }
+                    
+                    const finalHighlights = merged.map((h, index) => ({
+                        ...h,
+                        id: h.id === 'temp' ? `new-${Date.now()}-${index}` : h.id
+                    }));
+                    return [...others, ...finalHighlights];
+                });
+            }, []);
+
+            const removeHighlight = useCallback((id) => {
+                setHighlights(prev => prev.filter(h => h.id !== id));
+            }, []);
+
+            const handleAnswerChange = useCallback((id, value) => {
+                setUserAnswers(prev => ({ ...prev, [id]: value }));
+                if (showResults) setShowResults(false);
+            }, [showResults]);
+
+            const checkAnswers = useCallback(() => {
+                let newScore = 0;
+                QUESTIONS_TF.forEach(q => {
+                    if (userAnswers[q.id] === q.answer) newScore++;
+                });
+                Object.entries(GAP_FILL_ANSWERS).forEach(([id, correctAns]) => {
+                    const userAns = userAnswers[id];
+                    if (userAns && userAns.trim().toLowerCase() === correctAns.toString().toLowerCase()) {
+                        newScore++;
+                    }
+                });
+                setScore(newScore);
+                setShowResults(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, [userAnswers]);
+
+            const resetQuiz = useCallback(() => {
+                if (window.confirm("Are you sure you want to clear all your answers and highlights?")) {
+                    setUserAnswers({});
+                    setShowResults(false);
+                    setScore(0);
+                    setHighlights([]);
+                    localStorage.removeItem(STORAGE_KEY_ANSWERS);
+                    localStorage.removeItem(STORAGE_KEY_HIGHLIGHTS);
+                }
+            }, []);
+
+            if (!isLoaded) return null;
+
+            return (
+                <div className="min-h-screen bg-gray-100 font-sans text-gray-900">
+                    <header className="bg-emerald-900 text-white shadow-lg sticky top-0 z-50 border-b border-emerald-800">
+                        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-emerald-800 p-2 rounded-lg">
+                                    <BookOpen className="w-5 h-5 text-emerald-100" />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg md:text-xl font-bold tracking-tight">IELTS Reading</h1>
+                                    <p className="text-[10px] text-emerald-300 font-medium uppercase tracking-widest hidden md:block">Academic Practice Module</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm">
+                                <div className="hidden md:flex items-center gap-2 text-emerald-100 bg-emerald-950/30 px-3 py-1.5 rounded-full border border-emerald-800">
+                                    <PenTool className="w-3.5 h-3.5" />
+                                    <span className="text-xs font-medium">Auto-saving progress</span>
+                                </div>
+                                {showResults && (
+                                    <div className="bg-white text-emerald-900 font-bold px-4 py-1.5 rounded-full shadow-lg animate-[fade-in_0.3s_ease-out] flex items-center gap-2">
+                                        <span>Score:</span>
+                                        <span className={`text-lg ${score >= 10 ? 'text-green-600' : 'text-orange-600'}`}>{score}/13</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto p-4 md:p-6 lg:h-[calc(100vh-64px)] lg:overflow-hidden">
+                        <div className="flex flex-col lg:flex-row gap-6 h-full">
+                            <div className="flex-1 lg:overflow-y-auto bg-white rounded-xl shadow-md border border-gray-200 lg:h-full flex flex-col group">
+                                <div className="p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center sticky top-0 z-20 rounded-t-xl">
+                                    <h2 className="font-bold text-lg text-gray-700 flex items-center gap-2">
+                                        Reading Passage 1
+                                        <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">The Kākāpō</span>
+                                    </h2>
+                                    {highlights.length > 0 && (
+                                        <button 
+                                            onClick={() => setHighlights([])}
+                                            className="text-xs flex items-center gap-1 text-gray-400 hover:text-red-600 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                                            title="Clear all highlights"
+                                        >
+                                            <Trash2 className="w-3 h-3" /> Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="p-6 md:p-10 selection:bg-yellow-200 selection:text-gray-900 max-w-none prose prose-slate prose-lg">
+                                    {PASSAGE_PARAGRAPHS.map((para, idx) => (
+                                        <HighlightableParagraph
+                                            key={idx}
+                                            text={para}
+                                            pIndex={idx}
+                                            highlights={highlights}
+                                            onHighlight={addHighlight}
+                                            onRemoveHighlight={removeHighlight}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 lg:w-[45%] lg:overflow-y-auto lg:h-full flex flex-col relative">
+                                <div className="flex-1 overflow-y-auto pr-1 pb-24 scrollbar-thin">
+                                    <QuizSection 
+                                        userAnswers={userAnswers} 
+                                        handleAnswerChange={handleAnswerChange}
+                                        showResults={showResults}
+                                    />
+                                </div>
+                                <div className="bg-white/95 backdrop-blur-md p-4 border-t border-gray-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] rounded-t-xl lg:rounded-xl mt-4 lg:mt-0 sticky bottom-0 lg:static z-30">
+                                    <div className="flex justify-between items-center gap-4">
+                                        <button
+                                            onClick={resetQuiz}
+                                            className="flex items-center gap-2 text-gray-500 hover:text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                                        >
+                                            <RefreshCw className="w-4 h-4" /> Reset All
+                                        </button>
+
+                                        <button
+                                            onClick={checkAnswers}
+                                            className={`
+                                                flex-1 max-w-xs px-6 py-3 rounded-lg font-bold text-white shadow-lg transition-all transform active:scale-[0.98]
+                                                flex items-center justify-center gap-2
+                                                ${showResults 
+                                                    ? 'bg-slate-700 hover:bg-slate-800 shadow-slate-200' 
+                                                    : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 hover:-translate-y-0.5'
+                                                }
+                                            `}
+                                        >
+                                            {showResults ? (
+                                                <>Update Results</>
+                                            ) : (
+                                                <>Check Answers <CheckCircle className="w-4 h-4 opacity-50" /></>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
